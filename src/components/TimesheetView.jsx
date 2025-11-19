@@ -51,7 +51,7 @@ export default function TimesheetView() {
         <table className="w-full text-sm -collapse">
           <thead>
             <tr className="bg-gray-200">
-              {["Date", "Start Time", "End Time", "Hours", "Task"].map((h) => (
+              {["Date", "Start Time", "End Time", "Hours", "Task","Created At"].map((h) => (
                 <th key={h} className="p-2">{h}</th>
               ))}
             </tr>
