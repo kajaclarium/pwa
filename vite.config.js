@@ -2,10 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const isProd = process.env.NODE_ENV === "production";
+const repoName = 'demo-pwa';
 
 export default defineConfig({
-  base: isProd ? "/pwa/" : "/",  // Required for GH Pages
+  base: `/${repoName}/`,
   plugins: [
     react(),
     VitePWA({
