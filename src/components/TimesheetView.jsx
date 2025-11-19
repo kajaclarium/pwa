@@ -73,6 +73,7 @@ export default function TimesheetView() {
                 <td className="p-2">{r.end_time}</td>
                 <td className="p-2">{r.hours}</td>
                 <td className="p-2">{r.task}</td>
+                <td className="p-2">{r.created_at}</td>
               </tr>
             ))}
           </tbody>

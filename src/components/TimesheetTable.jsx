@@ -21,6 +21,8 @@ export default function TimesheetTable() {
   const [localRows, setLocalRows] = useState([]);
   const [showTimesheet, setShowTimesheet] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false); // Track submission status
+  const [sheetLine, setSheetLine] = useState(null); // To store the submitted sheet summary
 
   // Load rows from IndexedDB into Redux on mount
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function TimesheetTable() {
   }, [dispatch]);
 
   // Calculate hours from start_time/end_time
-  function calculateHours(start_time,end_time) {
+  function calculateHours(start_time, end_time) {
     if (!start_time || !end_time) return "0";
     const start_timeTime = new Date(`2025-01-01T${start_time}:00`);
     let end_timeTime = new Date(`2025-01-01T${end_time}:00`);
@@ -103,6 +105,7 @@ export default function TimesheetTable() {
   async function submitTimesheet() {
     setLoading(true);
     try {
+      const savedRows = [];
       for (const row of localRows) {
         const payload = {
           id: row.id,
@@ -121,7 +124,13 @@ export default function TimesheetTable() {
 
         // Update Redux state
         dispatch(addLocal(payload));
+
+        // Collect saved rows for summary
+        savedRows.push(payload);
       }
+
+      // Set the sheet line as the summary of the saved rows
+      setSheetLine(savedRows);
 
       notify("Saved locally", {
         body: `${localRows.length} rows saved to local DB.`,
@@ -129,6 +138,10 @@ export default function TimesheetTable() {
 
       if (navigator.onLine) dispatch(syncTimesheets());
       else dispatch(setSyncStatus("idle"));
+
+      // Reset rows after submission
+      setLocalRows([]);
+      setSubmitted(true); // Mark as submitted
     } catch (err) {
       console.error("submitTimesheet error", err);
       notify("Save failed", {
@@ -204,9 +217,7 @@ export default function TimesheetTable() {
           <thead className="bg-gray-200 text-left">
             <tr>
               {["Date", "start_time", "end_time", "Hours", "Task", "Actions"].map((h) => (
-                <th key={h} className="p-2  ">
-                  {h}
-                </th>
+                <th key={h} className="p-2  ">{h}</th>
               ))}
             </tr>
           </thead>
@@ -217,9 +228,7 @@ export default function TimesheetTable() {
                   <input
                     type="date"
                     value={row.date}
-                    onChange={(e) =>
-                      handleChange(row.id, "date", e.target.value)
-                    }
+                    onChange={(e) => handleChange(row.id, "date", e.target.value)}
                     className="w-full p-1"
                   />
                 </td>
@@ -227,9 +236,7 @@ export default function TimesheetTable() {
                   <input
                     type="time"
                     value={row.start_time}
-                    onChange={(e) =>
-                      handleChange(row.id, "start_time", e.target.value)
-                    }
+                    onChange={(e) => handleChange(row.id, "start_time", e.target.value)}
                     className="w-full p-1"
                   />
                 </td>
@@ -237,27 +244,21 @@ export default function TimesheetTable() {
                   <input
                     type="time"
                     value={row.end_time}
-                    onChange={(e) =>
-                      handleChange(row.id, "end_time", e.target.value)
-                    }
+                    onChange={(e) => handleChange(row.id, "end_time", e.target.value)}
                     className="w-full p-1"
                   />
                 </td>
-                <td className="p-2   text-center font-semibold">
-                  {row.hours}
-                </td>
+                <td className="p-2 text-center font-semibold">{row.hours}</td>
                 <td className="p-2  ">
                   <input
                     type="text"
                     value={row.task}
                     placeholder="Work description"
-                    onChange={(e) =>
-                      handleChange(row.id, "task", e.target.value)
-                    }
+                    onChange={(e) => handleChange(row.id, "task", e.target.value)}
                     className="w-full p-1"
                   />
                 </td>
-                <td className="p-2   flex justify-center gap-1">
+                <td className="p-2 flex justify-center gap-1">
                   <button
                     onClick={() => removeRow(row.id)}
                     className="px-2 py-1 bg-red-500 text-white rounded"
@@ -288,6 +289,21 @@ export default function TimesheetTable() {
         </button>
       </div>
 
+      {/* Sheet Line (submitted data) */}
+      {submitted && sheetLine && (
+        <div className="mt-5 p-3 border bg-gray-100">
+          <h3 className="font-bold">Timesheet Submitted</h3>
+          <ul>
+            {sheetLine.map((row) => (
+              <li key={row.id}>
+                {row.date} - {row.hours} hours - {row.task || "No Task"}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* View Timesheet Records */}
       <div className="flex gap-2 mt-3">
         <button
           onClick={() => setShowTimesheet(true)}
