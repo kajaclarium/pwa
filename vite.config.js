@@ -1,16 +1,16 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 const isProd = process.env.NODE_ENV === "production";
 
 export default defineConfig({
-  base: isProd ? "/pwa/" : "/",    // 👈 FIX: local uses "/", build uses "/pwa/"
+  base: isProd ? "/pwa/" : "/",  // Required for GH Pages
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt'],
+      includeAssets: ['favicon.svg', 'robots.txt'], // relative paths only
       manifest: {
         name: 'My PWA App',
         short_name: 'PWA',
@@ -18,7 +18,6 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
 
-        // Correct scope for GitHub Pages
         scope: "/pwa/",
         start_url: "/pwa/",
 
@@ -43,4 +42,4 @@ export default defineConfig({
       }
     })
   ]
-})
+});
