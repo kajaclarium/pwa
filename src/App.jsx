@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
+import { setupOnlineSync } from "./services/syncService.js";
+import store from "./store/store.js";
 
 export default function App() {
 
@@ -32,6 +34,10 @@ export default function App() {
   window.addEventListener("online", () => {
     alert("You are online. Syncing data...");
   });
+
+  useEffect(() => {
+    setupOnlineSync(store);
+    },[]);
   
 
   return (

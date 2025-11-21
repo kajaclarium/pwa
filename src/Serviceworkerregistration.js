@@ -1,10 +1,8 @@
-// serviceWorkerRegistration.js
-
 export function register() {
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker
-          .register("/service-worker.js")
+          .register("/pwa/service-worker.js")
           .then((registration) => {
             console.log("SW registered:", registration);
   

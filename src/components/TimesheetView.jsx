@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "../services/supabaseClient";
 import { db } from "../services/dexieDB";
 
-export default function TimesheetView() {
+
+export default function TimesheetView({submitTimesheet}) {
   const [data, setData] = useState([]);
+
 
   async function loadData() {
     console.log("🔵 Checking online status:", navigator.onLine);
@@ -29,9 +31,9 @@ export default function TimesheetView() {
         console.log("⚠️ Supabase empty → Trying IndexedDB…");
       }
 
-      // Fallback for offline OR empty Supabase
-      const offlineData = await db.timesheets.toArray();
-      console.log("📦 IndexedDB (Dexie) data:", offlineData);
+      // // Fallback for offline OR empty Supabase
+      // const offlineData = await db.timesheets.toArray();
+      // console.log("📦 IndexedDB (Dexie) data:", offlineData);
 
       setData(offlineData);
     } catch (err) {
@@ -41,7 +43,7 @@ export default function TimesheetView() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [submitTimesheet]);
 
   return (
     <div className="p-4">

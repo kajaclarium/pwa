@@ -290,7 +290,7 @@ export default function TimesheetTable() {
       </div>
 
       {/* Sheet Line (submitted data) */}
-      {submitted && sheetLine && (
+      {/* {submitted && sheetLine && (
         <div className="mt-5 p-3 border bg-gray-100">
           <h3 className="font-bold">Timesheet Submitted</h3>
           <ul>
@@ -301,7 +301,7 @@ export default function TimesheetTable() {
             ))}
           </ul>
         </div>
-      )}
+      )} */}
 
       {/* View Timesheet Records */}
       <div className="flex gap-2 mt-3">
@@ -314,7 +314,7 @@ export default function TimesheetTable() {
         </button>
       </div>
 
-      {showTimesheet && <TimesheetView />}
+      {showTimesheet && <TimesheetView submitTimesheet= {submitTimesheet} />}
     </div>
   );
 }
