@@ -3,7 +3,7 @@ import { supabase } from "../services/supabaseClient";
 import { db } from "../services/dexieDB";
 
 
-export default function TimesheetView({submitTimesheet}) {
+export default function TimesheetView({submitTimesheet,syncTimesheets}) {
   const [data, setData] = useState([]);
 
 
@@ -43,7 +43,7 @@ export default function TimesheetView({submitTimesheet}) {
 
   useEffect(() => {
     loadData();
-  }, [submitTimesheet]);
+  }, [submitTimesheet,syncTimesheets]);
 
   return (
     <div className="p-4">

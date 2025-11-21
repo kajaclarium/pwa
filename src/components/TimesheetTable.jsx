@@ -314,7 +314,7 @@ export default function TimesheetTable() {
         </button>
       </div>
 
-      {showTimesheet && <TimesheetView submitTimesheet= {submitTimesheet} />}
+      {showTimesheet && <TimesheetView submitTimesheet= {submitTimesheet} syncTimesheets={syncTimesheets} />}
     </div>
   );
 }
