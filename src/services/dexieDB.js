@@ -3,6 +3,7 @@ import Dexie from "dexie";
 
 export const db = new Dexie("TimesheetDB");
 
+
 db.version(1).stores({
   timesheets: "id, date, start_time, end_time, hours, task, created_at, synced, supabase_id"
 });

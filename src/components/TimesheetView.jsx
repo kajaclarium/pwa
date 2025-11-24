@@ -4,7 +4,7 @@ import { db } from "../services/dexieDB";
 
 
 export default function TimesheetView({submitTimesheet,syncTimesheets}) {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState([...[]]);
 
 
   async function loadData() {
@@ -31,9 +31,9 @@ export default function TimesheetView({submitTimesheet,syncTimesheets}) {
         console.log("⚠️ Supabase empty → Trying IndexedDB…");
       }
 
-      // // Fallback for offline OR empty Supabase
-      // const offlineData = await db.timesheets.toArray();
-      // console.log("📦 IndexedDB (Dexie) data:", offlineData);
+      // Fallback for offline OR empty Supabase
+      const offlineData = await db.timesheets.toArray();
+      console.log("📦 IndexedDB (Dexie) data:", offlineData);
 
       setData(offlineData);
     } catch (err) {

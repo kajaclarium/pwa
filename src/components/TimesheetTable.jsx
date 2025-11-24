@@ -119,8 +119,21 @@ export default function TimesheetTable() {
           supabase_id: null,
         };
 
+        // await db.timesheets.put(payload);
+
         // Save to IndexedDB (upsert)
-        await db.timesheets.put(payload);
+        const exist = await db.timesheets.get(row.id);
+        
+
+        if(exist){
+          console.log("exit", exist);
+          await db.timesheets.update(row.id, payload);
+          
+        } else {
+          console.log("new", payload);
+          await db.timesheets.add(payload);
+          
+         }
 
         // Update Redux state
         dispatch(addLocal(payload));

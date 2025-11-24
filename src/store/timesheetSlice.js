@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { db } from "../services/dexieDB";
 import { supabase } from "../services/supabaseClient";
+import { useState } from "react";
 
 // SYNC FUNCTION
 export const syncTimesheets = createAsyncThunk("timesheet/sync", async () => {
@@ -26,7 +27,8 @@ export const syncTimesheets = createAsyncThunk("timesheet/sync", async () => {
   
     // mark as synced locally
     unsynced.forEach((row) => db.timesheets.update(row.id, { synced: 1 }));
-  
+
+   
     return "Synced to Supabase";
   });
   

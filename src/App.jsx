@@ -8,8 +8,8 @@ import store from "./store/store.js";
 export default function App() {
 
   window.addEventListener("online", async () => {
-    const unsynced = await db.offline_timesheet.toArray();
-    if (unsynced.length === 0) return;
+    // const unsynced = await db.offline_timesheet.toArray();
+    // if (unsynced.length === 0) return;
   
     const user = await supabase.auth.getUser();
   
