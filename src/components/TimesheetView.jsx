@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../services/supabaseClient";
-import { db } from "../services/dexieDB";
+import React, { useEffect, useState } from "react";
+import { supabase } from "../services/supabaseClient"; // Assuming supabase is imported here
+import { db, cloneDb } from "../services/dexieDB";
 
+export default function TimesheetView() {
+  const [data, setData] = useState([]);
 
-export default function TimesheetView({submitTimesheet,syncTimesheets}) {
-  const [data, setData] = useState([...[]]);
-
-
+  // Function to load data from either Supabase or cloneDb
   async function loadData() {
-    console.log("🔵 Checking online status:", navigator.onLine);
-
     try {
+      console.log("Checking online status:", navigator.onLine);
+
       if (navigator.onLine) {
+        // If online, fetch the latest data from Supabase
         console.log("🌐 Online → Fetching from Supabase…");
 
         const { data: supaData, error } = await supabase
@@ -19,31 +19,43 @@ export default function TimesheetView({submitTimesheet,syncTimesheets}) {
           .select("*")
           .order("created_at", { ascending: false });
 
-        console.log("🌐 Supabase data:", supaData);
-        console.log("🌐 Supabase error:", error);
-
-        // If Supabase returns data → Use it
-        if (supaData && supaData.length > 0) {
-          setData(supaData);
+        if (error) {
+          console.error("Supabase error:", error);
           return;
         }
 
-        console.log("⚠️ Supabase empty → Trying IndexedDB…");
+        if (supaData && supaData.length > 0) {
+          console.log("🌐 Supabase data:", supaData);
+          // Set the fetched data to the state
+          setData(supaData);
+          return;
+        } else {
+          console.log("⚠️ Supabase empty → Fetching from cloneDb...");
+        }
       }
 
-      // Fallback for offline OR empty Supabase
-      const offlineData = await db.timesheets.toArray();
-      console.log("📦 IndexedDB (Dexie) data:", offlineData);
-
+      const offlineData = await cloneDb.timesheets
+        .where("synced")
+        .equals(1) // Only show unsynced data
+        .toArray();
+      console.log("📦 Offline data from cloneDb:", offlineData);
       setData(offlineData);
     } catch (err) {
       console.error("❌ loadData error:", err);
     }
   }
 
+  // Use effect hook to run the data loading logic
   useEffect(() => {
+    // Initial data load
     loadData();
-  }, [submitTimesheet,syncTimesheets]);
+
+    // Set an interval to refresh data every 6 seconds
+    const id = setInterval(loadData, 6000);
+
+    // Clean up the interval when the component is unmounted
+    return () => clearInterval(id);
+  }, []); // Empty dependency array ensures this runs once when the component mounts
 
   return (
     <div className="p-4">
@@ -53,8 +65,17 @@ export default function TimesheetView({submitTimesheet,syncTimesheets}) {
         <table className="w-full text-sm -collapse">
           <thead>
             <tr className="bg-gray-200">
-              {["Date", "Start Time", "End Time", "Hours", "Task","Created At"].map((h) => (
-                <th key={h} className="p-2">{h}</th>
+              {[
+                "Date",
+                "Start Time",
+                "End Time",
+                "Hours",
+                "Task",
+                "Created At",
+              ].map((h) => (
+                <th key={h} className="p-2">
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
@@ -62,7 +83,7 @@ export default function TimesheetView({submitTimesheet,syncTimesheets}) {
           <tbody>
             {data.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-2 text-center">
+                <td colSpan={6} className="p-2 text-center">
                   No records found
                 </td>
               </tr>

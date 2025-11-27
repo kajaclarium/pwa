@@ -9,6 +9,7 @@ import {
 } from "../store/timesheetSlice";
 import { notify } from "../lib/notify";
 import { db } from "../services/dexieDB"; // ensure path is correct
+import { runFullSync } from "../services/syncService";
 import TimesheetView from "./TimesheetView";
 
 export default function TimesheetTable() {
@@ -19,62 +20,43 @@ export default function TimesheetTable() {
     online,
   } = useSelector((s) => s.timesheet);
   const [localRows, setLocalRows] = useState([]);
-  const [showTimesheet, setShowTimesheet] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false); // Track submission status
-  const [sheetLine, setSheetLine] = useState(null); // To store the submitted sheet summary
+  const [showTimesheet, setShowTimesheet] = useState(false);
+  const [onlineStatus, setOnlineStatus] = useState(navigator.onLine);
 
-  // Load rows from IndexedDB into Redux on mount
-  useEffect(() => {
-    dispatch(loadTimesheetsFromIDB());
-  }, [dispatch]);
-
-  // Mirror Redux rows into component state for editing
-  useEffect(() => {
-    setLocalRows(
-      reduxRows.map((r) => ({
-        id: r.id,
-        date: r.date || "",
-        start_time: r.start_time || "",
-        end_time: r.end_time || "",
-        hours: r.hours?.toString() || "0",
-        task: r.task || "",
-      }))
-    );
-  }, [reduxRows]);
-
-  // Online/offline detection
-  useEffect(() => {
-    const onOnline = () => {
-      dispatch(setOnline(true));
-      notify("Online", { body: "You are back online — attempting sync" });
-      dispatch(syncTimesheets());
-    };
-    const onOffline = () => {
-      dispatch(setOnline(false));
-      notify("Offline", {
-        body: "You are offline — timesheets will be saved locally.",
-      });
-    };
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
-    return () => {
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
-    };
-  }, [dispatch]);
-
-  // Calculate hours from start_time/end_time
-  function calculateHours(start_time, end_time) {
-    if (!start_time || !end_time) return "0";
-    const start_timeTime = new Date(`2025-01-01T${start_time}:00`);
-    let end_timeTime = new Date(`2025-01-01T${end_time}:00`);
-    if (end_timeTime < start_timeTime) end_timeTime.setDate(end_timeTime.getDate() + 1);
-    const diff = (end_timeTime - start_timeTime) / (1000 * 60 * 60);
-    return diff > 0 ? diff.toFixed(2) : "0";
+useEffect(() => {
+  function handleOnline() {
+    setOnlineStatus(true);
+  }
+  function handleOffline() {
+    setOnlineStatus(false);
   }
 
-  // Update local row
+  window.addEventListener("online", handleOnline);
+  window.addEventListener("offline", handleOffline);
+
+  return () => {
+    window.removeEventListener("online", handleOnline);
+    window.removeEventListener("offline", handleOffline);
+  };
+}, []);
+
+  // Add a new row to the table
+  function addRow() {
+    setLocalRows((prev) => [
+      {
+        id: crypto.randomUUID(),
+        date: "",
+        start_time: "",
+        end_time: "",
+        hours: "0",
+        task: "",
+      },
+      ...prev,
+    ]);
+  }
+
+  // Update local row based on user input
   function handleChange(id, field, value) {
     setLocalRows((prev) =>
       prev.map((row) => {
@@ -88,24 +70,13 @@ export default function TimesheetTable() {
     );
   }
 
-  // Add new row
-  function addRow() {
-    const newRow = {
-      id: crypto.randomUUID(),
-      date: "",
-      start_time: "",
-      end_time: "",
-      hours: "0",
-      task: "",
-    };
-    setLocalRows((prev) => [newRow, ...prev]);
-  }
-
-  // Save rows to Dexie + Redux + optionally sync
+  // Save rows to IndexedDB
   async function submitTimesheet() {
     setLoading(true);
+
     try {
       const savedRows = [];
+
       for (const row of localRows) {
         const payload = {
           id: row.id,
@@ -119,64 +90,35 @@ export default function TimesheetTable() {
           supabase_id: null,
         };
 
-        // await db.timesheets.put(payload);
-
-        // Save to IndexedDB (upsert)
-        const exist = await db.timesheets.get(row.id);
-        
-
-        if(exist){
-          console.log("exit", exist);
-          await db.timesheets.update(row.id, payload);
-          
-        } else {
-          console.log("new", payload);
-          await db.timesheets.add(payload);
-          
-         }
-
-        // Update Redux state
+        await db.timesheets.put(payload);
         dispatch(addLocal(payload));
 
-        // Collect saved rows for summary
         savedRows.push(payload);
       }
 
-      // Set the sheet line as the summary of the saved rows
-      setSheetLine(savedRows);
-
-      notify("Saved locally", {
-        body: `${localRows.length} rows saved to local DB.`,
-      });
+      notify("Saved locally", { body: `${savedRows.length} rows saved.` });
 
       if (navigator.onLine) dispatch(syncTimesheets());
-      else dispatch(setSyncStatus("idle"));
 
-      // Reset rows after submission
-      setLocalRows([]);
-      setSubmitted(true); // Mark as submitted
+      setLocalRows([]); // CLEAR TEMP INPUTS
     } catch (err) {
-      console.error("submitTimesheet error", err);
-      notify("Save failed", {
-        body: err?.message || "Could not save timesheet",
-      });
+      console.error(err);
+      notify("Save failed", { body: err.message });
     } finally {
       setLoading(false);
     }
   }
 
-  // Delete row
-  async function removeRow(id) {
-    try {
-      await db.timesheets.delete(id);
-      setLocalRows((prev) => prev.filter((r) => r.id !== id));
-      dispatch(loadTimesheetsFromIDB());
-      notify("Row deleted", { body: "Row removed from local DB" });
-    } catch (err) {
-      console.error("removeRow", err);
-    }
+  // Calculate hours from start_time/end_time
+  function calculateHours(start_time, end_time) {
+    if (!start_time || !end_time) return "0";
+    const start_timeTime = new Date(`2025-01-01T${start_time}:00`);
+    let end_timeTime = new Date(`2025-01-01T${end_time}:00`);
+    if (end_timeTime < start_timeTime)
+      end_timeTime.setDate(end_timeTime.getDate() + 1);
+    const diff = (end_timeTime - start_timeTime) / (1000 * 60 * 60);
+    return diff > 0 ? diff.toFixed(2) : "0";
   }
-
   // Manual sync
   const handleManualSync = useCallback(() => {
     if (navigator.onLine) dispatch(syncTimesheets());
@@ -191,10 +133,10 @@ export default function TimesheetTable() {
         <div className="flex gap-2 items-center">
           <div
             className={`px-2 py-1 rounded ${
-              online ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+              onlineStatus ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
             }`}
           >
-            {online ? "Online" : "Offline"}
+            {onlineStatus ? "Online" : "Offline"}
           </div>
           <div
             className={`px-2 py-1 rounded ${
@@ -229,8 +171,17 @@ export default function TimesheetTable() {
         <table className="w-full min-w-[600px]  -collapse">
           <thead className="bg-gray-200 text-left">
             <tr>
-              {["Date", "start_time", "end_time", "Hours", "Task", "Actions"].map((h) => (
-                <th key={h} className="p-2  ">{h}</th>
+              {[
+                "Date",
+                "start_time",
+                "end_time",
+                "Hours",
+                "Task",
+                "Actions",
+              ].map((h) => (
+                <th key={h} className="p-2  ">
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
@@ -241,7 +192,9 @@ export default function TimesheetTable() {
                   <input
                     type="date"
                     value={row.date}
-                    onChange={(e) => handleChange(row.id, "date", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(row.id, "date", e.target.value)
+                    }
                     className="w-full p-1"
                   />
                 </td>
@@ -249,7 +202,9 @@ export default function TimesheetTable() {
                   <input
                     type="time"
                     value={row.start_time}
-                    onChange={(e) => handleChange(row.id, "start_time", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(row.id, "start_time", e.target.value)
+                    }
                     className="w-full p-1"
                   />
                 </td>
@@ -257,7 +212,9 @@ export default function TimesheetTable() {
                   <input
                     type="time"
                     value={row.end_time}
-                    onChange={(e) => handleChange(row.id, "end_time", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(row.id, "end_time", e.target.value)
+                    }
                     className="w-full p-1"
                   />
                 </td>
@@ -267,7 +224,9 @@ export default function TimesheetTable() {
                     type="text"
                     value={row.task}
                     placeholder="Work description"
-                    onChange={(e) => handleChange(row.id, "task", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(row.id, "task", e.target.value)
+                    }
                     className="w-full p-1"
                   />
                 </td>
@@ -327,7 +286,12 @@ export default function TimesheetTable() {
         </button>
       </div>
 
-      {showTimesheet && <TimesheetView submitTimesheet= {submitTimesheet} syncTimesheets={syncTimesheets} />}
+      {showTimesheet && (
+        <TimesheetView
+          submitTimesheet={submitTimesheet}
+          syncTimesheets={syncTimesheets}
+        />
+      )}
     </div>
   );
 }
