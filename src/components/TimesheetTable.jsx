@@ -100,7 +100,6 @@ export default function TimesheetTable() {
           task: row.task || null,
           created_at: new Date().toISOString(),
           synced: 0,
-          supabase_id: null,
         };
 
         await db.timesheets.put(payload);
