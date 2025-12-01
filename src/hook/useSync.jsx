@@ -1,29 +1,45 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { runFullSync } from "../services/syncService";
 
 export default function useSync() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
   useEffect(() => {
-    if (navigator.onLine) {
-      console.log("🟢 Online — syncing...");
-      runFullSync();
+
+    async function syncIfOnline() {
+      if (navigator.onLine) {
+        console.log("🟢 Online — syncing...");
+        setIsOnline(true);
+        await runFullSync();
+      } else {
+        console.log("🔴 Offline — data stored locally.");
+        setIsOnline(false);
+      }
     }
 
+    // Run once
+    syncIfOnline();
+
+    // Event when coming online
     const handleOnline = () => {
-      console.log("🟢 Online — syncing...");
-      runFullSync();
+      setIsOnline(true);
+      syncIfOnline();
     };
 
+    // Event when going offline
     const handleOffline = () => {
-      console.log("🔴 Offline — data stored locally.");
+      console.log("🔴 Went offline");
+      setIsOnline(false);
     };
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
+  return { isOnline };
 }
