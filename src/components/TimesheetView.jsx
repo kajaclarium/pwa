@@ -11,33 +11,23 @@ export default function TimesheetView() {
       console.log("Checking online status:", navigator.onLine);
 
       if (navigator.onLine) {
-        // If online, fetch the latest data from Supabase
-        console.log("🌐 Online → Fetching from Supabase…");
-
         const { data: supaData, error } = await supabase
           .from("timesheet")
           .select("*")
           .order("created_at", { ascending: false });
+      
+        const localUnsynced = await cloneDb.timesheets
+          .where("synced")
+          .equals(0)
+          .toArray();
+      
+        const merged = [...localUnsynced, ...supaData];
+      
+        setData(merged);
+        return;
+      }      
 
-        if (error) {
-          console.error("Supabase error:", error);
-          return;
-        }
-
-        if (supaData && supaData.length > 0) {
-          console.log("🌐 Supabase data:", supaData);
-          // Set the fetched data to the state
-          setData(supaData);
-          return;
-        } else {
-          console.log("⚠️ Supabase empty → Fetching from cloneDb...");
-        }
-      }
-
-      const offlineData = await cloneDb.timesheets
-        .where("synced")
-        .equals(1) // Only show unsynced data
-        .toArray();
+      const offlineData = await cloneDb.timesheets.toArray();
       console.log("📦 Offline data from cloneDb:", offlineData);
       setData(offlineData);
     } catch (err) {
