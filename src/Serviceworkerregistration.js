@@ -6,6 +6,20 @@ export function register() {
         .then((reg) => console.log("SW registered:", reg))
         .catch((err) => console.error("SW fail:", err));
     });
+    if ("updatefound" in navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener("updatefound", () => {
+        const newWorker = navigator.serviceWorker.installing;
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed") {
+            if (navigator.serviceWorker.controller) {
+              console.log("New content is available; please refresh.");
+            } else {
+              console.log("Content is cached for offline use.");
+            }
+          }
+        });
+      });
+    }
   }
 }
 

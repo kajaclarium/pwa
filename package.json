@@ -1,6 +1,6 @@
 {
   "name": "demo-pwa",
-  "homepage": "https://kajaclarium.github.io/pwa/",
+  "homepage": "https://kajaclarium.github.io/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,12 +11,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/lab": "^7.0.1-beta.20",
+    "@mui/material": "^7.3.6",
     "@reduxjs/toolkit": "^2.10.1",
     "@supabase/supabase-js": "^2.81.1",
     "dexie": "^4.2.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
