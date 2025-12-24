@@ -15,7 +15,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/pwa">
         <Routes>
 
           {/* Public */}
