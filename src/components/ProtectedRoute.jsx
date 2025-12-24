@@ -1,17 +1,14 @@
 import { useContext } from "react";
+import { Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 export default function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { isAuthenticated, loading } = useContext(AuthContext);
+
+  if (loading) return <div>Loading...</div>;
 
   if (!isAuthenticated) {
-    <div>
-      <h2>Access Denied</h2>
-      <p>You must be logged in to view this page.</p>
-    </div>
-    navigate("/login");
+    return <Navigate to="/login" replace />;
   }
 
   return children;

@@ -16,38 +16,38 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        
-          <Routes>
+        <Routes>
 
-            {/* Public route */}
-            <Route path="/login" element={<Login  />} />
+          {/* Public */}
+          <Route path="/login" element={<Login />} />
 
-            {/* Protected pages */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout>
+          {/* Protected Home */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout>
                   <Header />
                   <Home />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route
-              path="/user"
-              element={
-                <ProtectedRoute>
-                  <Layout>
+          {/* Protected User */}
+          <Route
+            path="/user"
+            element={
+              <ProtectedRoute>
+                <Layout>
                   <Header />
                   <User />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-          </Routes>
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
