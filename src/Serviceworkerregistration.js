@@ -28,10 +28,3 @@ export function unregister() {
     navigator.serviceWorker.ready.then((reg) => reg.unregister());
   }
 }
-self.addEventListener("install", () => {
-  self.skipWaiting();
-});
-
-self.addEventListener("activate", () => {
-  clients.claim();
-});
