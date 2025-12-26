@@ -62,7 +62,7 @@ export default function AuthProvider({ children }) {
       const res = await fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      console.log("fetch profile res:", res);
       // If token expired or invalid → logout user
       if (!res.ok) {
         logout();
