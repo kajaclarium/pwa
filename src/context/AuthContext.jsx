@@ -2,7 +2,7 @@ import { createContext, useState, useEffect } from "react";
 
 export const AuthContext = createContext();
 
-const API_BASE = `${import.meta.env.VITE_API_URL}`;// central API url
+const API_BASE = import.meta.env.VITE_API_URL;// central API url
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
