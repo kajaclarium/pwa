@@ -57,32 +57,33 @@ export default function AuthProvider({ children }) {
   /* ------------------------------
       FETCH PROFILE (/auth/me)
   ------------------------------- */
-  // const fetchUserProfile = async () => {
-  //   try {
-  //     const res = await fetch(`${API_BASE}/auth/me`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-  //     console.log("fetch profile res:", res);
-  //     // If token expired or invalid → logout user
-  //     if (!res.ok) {
-  //       logout();
-  //       return;
-  //     }
+  const fetchUserProfile = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      // If token expired or invalid → logout user
+      if (!res.ok) {
+        logout();
+        return;
+      }
 
-  //     const data = await res.json();
+      const data = await res.json();
 
-  //     if (data?.user) {
-  //       setUser(data.user);
-  //       setIsAuthenticated(true);
-  //     } else {
-  //       logout(); // just to be safe
-  //     }
-  //   } catch (err) {
-  //     logout();
-  //   }
+      if (data?.user) {
+        setUser(data.user);
+        setIsAuthenticated(true);
+      } else {
+        logout(); // just to be safe
+      }
+    } catch (err) {
+      console.log("fetchUserProfile error:", err);
+      logout();
+    }
 
-  //   setLoading(false);
-  // };
+    setLoading(false);
+  };
 
   /* ------------------------------
       LOGOUT
