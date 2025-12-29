@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
-import AuthProvider from "./context/authContext";
+import AuthProvider from "./context/AuthContext";
 
 export default function App() {
   useSync();
