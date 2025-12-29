@@ -13,7 +13,7 @@ import AuthProvider from "./context/AuthContext";
 export default function App() {
   useSync();
 
-  const basename = import.meta.env.PROD ? "/pwa" : "/";
+  const basename = import.meta.env.PROD ? "/pwa" : "/pwa/";
 
   console.log("PROD:", import.meta.env.PROD);
  console.log("DEV:", import.meta.env.DEV);
