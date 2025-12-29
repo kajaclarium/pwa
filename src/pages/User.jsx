@@ -1,5 +1,4 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../context/AuthContext";
 
 export default function User() {
   const { token, logout, user } = useContext(AuthContext);
@@ -13,7 +12,7 @@ export default function User() {
   const [newUser, setNewUser] = useState({ email: "", username: "", password: "" });
   const [editUser, setEditUser] = useState({ id: "", role: "" });
 
-  const API = "http://localhost:5000";
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Fetch all users
   const fetchUsers = async () => {

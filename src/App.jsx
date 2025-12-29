@@ -2,7 +2,6 @@ import "./App.css";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import User from "./pages/User";
-import AuthProvider from "./context/AuthContext";
 import useSync from "./hook/useSync";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -15,7 +14,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter basename="/pwa">
+      <BrowserRouter basename="/pwa/">
         <Routes>
 
           {/* Public */}
