@@ -146,7 +146,7 @@ const Login = () => {
               <Stack spacing={2}>
                 <TextField
                   fullWidth
-                  label="Username"
+                  label="Email"
                   type="text"
                   name="username"
                   sx={{ mb: 2, pt: 1 }}
