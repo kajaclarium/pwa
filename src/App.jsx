@@ -13,10 +13,17 @@ import AuthProvider from "./context/AuthContext";
 export default function App() {
   useSync();
 
+  const basename = import.meta.env.PROD ? "/pwa" : "/";
+
+  console.log("PROD:", import.meta.env.PROD);
+ console.log("DEV:", import.meta.env.DEV);
+
+
+  console.log("basename:", basename);
 
   return (
     <AuthProvider>
-      <BrowserRouter basename="/pwa">
+      <BrowserRouter basename={basename}>
         <Routes>
 
           {/* Public */}
