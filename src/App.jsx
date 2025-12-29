@@ -13,19 +13,12 @@ import AuthProvider from "./context/AuthContext";
 export default function App() {
   useSync();
 
-  const basename = import.meta.env.PROD ? "/pwa" : "/pwa/";
-
-  console.log("PROD:", import.meta.env.PROD);
- console.log("DEV:", import.meta.env.DEV);
-
-
-  console.log("basename:", basename);
+  const basename = import.meta.env.PROD ? "/pwa" : "/";
 
   return (
     <AuthProvider>
       <BrowserRouter basename={basename}>
         <Routes>
-
           {/* Public */}
           <Route path="/login" element={<Login />} />
 
@@ -54,7 +47,6 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
         </Routes>
       </BrowserRouter>
     </AuthProvider>

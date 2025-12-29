@@ -1,115 +1,82 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useState, useCallback } from "react";
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
-const API_BASE = import.meta.env.VITE_API_URL;// central API url
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
 
-  /* ------------------------------
-      Load user if token exists
-  ------------------------------- */
+  const isAuthenticated = !!user;
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+    setLoading(false);
+  }, []);
+
+  const fetchUserProfile = useCallback(async () => {
+    if (!token) {
+      logout();
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        logout();
+        return;
+      }
+      const data = await res.json();
+      if (!data?.user) {
+        logout();
+        return;
+      }
+      setUser(data.user);
+    } catch (err) {
+      console.error("fetchUserProfile error:", err);
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  }, [token, logout]);
+
   useEffect(() => {
-    if (token) fetchUserProfile();
-    else setLoading(false);
-  }, [token]);
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
-  /* ------------------------------
-      LOGIN
-  ------------------------------- */
   const login = async (email, password) => {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-
     const data = await res.json();
-    console.log("login data:", data);
-
-    if (!res.ok) throw new Error(data.message || "Login failed");
-
-    // Save token + user
+    if (!res.ok) throw new Error(data?.message || "Login failed");
     localStorage.setItem("token", data.token);
     setToken(data.token);
     setUser(data.user);
-    setIsAuthenticated(true);
+    setLoading(false);
   };
 
-  /* ------------------------------
-      REGISTER (normal user)
-  ------------------------------- */
   const register = async (email, password, username) => {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, username }),
     });
-
     const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || "Registration failed");
     return data;
   };
 
-  /* ------------------------------
-      FETCH PROFILE (/auth/me)
-  ------------------------------- */
-  const fetchUserProfile = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      // If token expired or invalid → logout user
-      if (!res.ok) {
-        logout();
-        return;
-      }
+  const value = { user, token, isAuthenticated, loading, login, logout, register };
 
-      const data = await res.json();
+  if (loading) return <div>Loading...</div>;
 
-      if (data?.user) {
-        setUser(data.user);
-        setIsAuthenticated(true);
-      } else {
-        logout(); // just to be safe
-      }
-    } catch (err) {
-      console.log("fetchUserProfile error:", err);
-      logout();
-    }
-
-    setLoading(false);
-  };
-
-  /* ------------------------------
-      LOGOUT
-  ------------------------------- */
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        isAuthenticated,
-        login,
-        logout,
-        register,
-        setUser,
-        fetchUserProfile,
-      }}
-    >
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
