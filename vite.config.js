@@ -4,7 +4,14 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 
 export default defineConfig({
-  base: `/pwa/`,
+  base: process.env.NODE_ENV === "production" ? "/pwa/" : "/",
+  server: {
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+    },
+  },
   plugins: [
     react(),
     VitePWA({
