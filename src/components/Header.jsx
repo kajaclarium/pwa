@@ -52,7 +52,7 @@ export default function Header() {
             Home
           </a>
 
-          <a href="/user" className="text-white hover:bg-white/20 px-3 py-1 rounded transition">
+          <a href="/pwa/user" className="text-white hover:bg-white/20 px-3 py-1 rounded transition">
             <img src="https://upload.wikimedia.org/wikipedia/commons/9/93/YT_Profile_icon.png" alt="User" className="inline h-6 w-6 mr-1 mb-1 border border-white-600"/>
             {userData?.role.toUpperCase() || 'Guest'}
           </a>

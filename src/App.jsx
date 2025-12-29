@@ -13,9 +13,10 @@ import AuthProvider from "./context/AuthContext";
 export default function App() {
   useSync();
 
+
   return (
     <AuthProvider>
-      <BrowserRouter basename="/pwa/">
+      <BrowserRouter basename="/pwa">
         <Routes>
 
           {/* Public */}
