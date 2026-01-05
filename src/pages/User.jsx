@@ -31,6 +31,8 @@ export default function User() {
       setLoading(false);
     }
   };
+  
+  console.log("Users:", users);
 
   useEffect(() => {
     fetchUsers();

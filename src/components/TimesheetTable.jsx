@@ -13,7 +13,9 @@ export default function TimesheetTable() {
 
   const { items: reduxRows, syncStatus } = useSelector((s) => s.timesheet);
 
-  const [localRows, setLocalRows] = useState([]);
+  const [localRows, setLocalRows] = useState([
+    { id: 1}
+  ]);
   const [loading, setLoading] = useState(false);
   const [showTimesheet, setShowTimesheet] = useState(false);
   const [onlineStatus, setOnlineStatus] = useState(navigator.onLine);
@@ -31,10 +33,12 @@ export default function TimesheetTable() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
-
+  console.log("Adding new row", localRows);
   // Add new row
   function addRow() {
+   
     setLocalRows((prev) => [
+      ...prev,
       {
         id: crypto.randomUUID(),
         date: "",
@@ -43,7 +47,6 @@ export default function TimesheetTable() {
         hours: "0",
         task: "",
       },
-      ...prev,
     ]);
   }
 
